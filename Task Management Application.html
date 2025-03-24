@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<!-- saved from url=(0046)file:///C:/Users/Keerthi/Desktop/web/task.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Management Application</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color:skyblue;
+           
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            width: 400px;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        .task-input {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .task-input input, .task-input textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        button {
+            padding: 10px;
+            border: none;
+            background: #28a745;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: red;
+        }
+
+        .filters {
+            display: flex;
+            justify-content: space-around;
+            margin: 10px 0;
+        }
+
+        .filters button {
+            background: #007bff;
+        }
+
+        .filters button:hover {
+            background: #0056b3;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .task {
+            background: #fff;
+            padding: 10px;
+            margin: 10px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .completed {
+            text-decoration: line-through;
+            color: gray;
+        }
+
+        .task button {
+            margin-left: 5px;
+            background: #dc3545;
+        }
+
+        .task button.edit {
+            background: #ffc107;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Task Management Application</h1>
+
+        <div class="task-input">
+            <input type="text" id="taskName" placeholder="Task Name">
+            <textarea id="taskDesc" placeholder="Task Description"></textarea>
+            <button id="addTask">Add Task</button>
+        </div>
+
+        <div class="filters">
+            <button id="showAll">All</button>
+            <button id="showPending">Pending</button>
+            <button id="showCompleted">Completed</button>
+        </div>
+
+        <ul id="taskList"></ul>
+    </div>
+
+    <script>
+        
+        const taskName = document.getElementById("taskName");
+        const taskDesc = document.getElementById("taskDesc");
+        const addTaskBtn = document.getElementById("addTask");
+        const taskList = document.getElementById("taskList");
+        const showAllBtn = document.getElementById("showAll");
+        const showPendingBtn = document.getElementById("showPending");
+        const showCompletedBtn = document.getElementById("showCompleted");
+
+        let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+
+        function renderTasks(filter = "all") {
+            taskList.innerHTML = "";
+            tasks.forEach((task, index) => {
+                if (filter === "completed" && !task.completed) return;
+                if (filter === "pending" && task.completed) return;
+
+                const taskItem = document.createElement("li");
+                taskItem.classList.add("task");
+                if (task.completed) {
+                    taskItem.classList.add("completed");
+                }
+
+                taskItem.innerHTML = `
+                    <div>
+                        <strong>${task.name}</strong> - ${task.description}
+                    </div>
+                    <div>
+                        <button class="edit" onclick="editTask(${index})">Edit</button>
+                        <button class="delete" onclick="deleteTask(${index})">Delete</button>
+                        <button class="toggle" onclick="toggleTask(${index})">
+                            ${task.completed ? "Undo" : "Complete"}
+                        </button>
+                    </div>
+                `;
+                taskList.appendChild(taskItem);
+            });
+        }
+        addTaskBtn.addEventListener("click", () => {
+            if (taskName.value.trim() === "") {
+                alert("Task name cannot be empty!");
+                return;
+            }
+
+            tasks.push({
+                name: taskName.value,
+                description: taskDesc.value,
+                completed: false
+            });
+
+            localStorage.setItem("tasks", JSON.stringify(tasks));
+            taskName.value = "";
+            taskDesc.value = "";
+            renderTasks();
+        });
+        function deleteTask(index) {
+            tasks.splice(index, 1);
+            localStorage.setItem("tasks", JSON.stringify(tasks));
+            renderTasks();
+        }
+        function toggleTask(index) {
+            tasks[index].completed = !tasks[index].completed;
+            localStorage.setItem("tasks", JSON.stringify(tasks));
+            renderTasks();
+        }
+        function editTask(index) {
+            const newName = prompt("Enter new task name:", tasks[index].name);
+            const newDesc = prompt("Enter new task description:", tasks[index].description);
+
+            if (newName && newDesc) {
+                tasks[index].name = newName;
+                tasks[index].description = newDesc;
+                localStorage.setItem("tasks", JSON.stringify(tasks));
+                renderTasks();
+            }
+        }
+        showAllBtn.addEventListener("click", () => renderTasks("all"));
+        showPendingBtn.addEventListener("click", () => renderTasks("pending"));
+        showCompletedBtn.addEventListener("click", () => renderTasks("completed"));
+        renderTasks();
+    </script>
+
+
+</body></html>
